@@ -17,7 +17,7 @@ fi
 CURRENT_USER="${SUDO_USER:-$USER}"
 PROJECT_DIR="/opt/unicorehub/backend"
 GIT_DIR="/opt/unicorehub"
-GIT_REPO="https://github.com/unicore-hub/INIT_SETUP.git"
+GIT_REPO="https://github.com/unicore-hub/Core_System.git"
 PG_VER=$(psql -V | awk '{print $3}' | cut -d. -f1)
 PG_HBA="/etc/postgresql/$PG_VER/main/pg_hba.conf"
 
