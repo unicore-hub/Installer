@@ -27,7 +27,7 @@ echo "base: /opt/unicorehub"
 #############################################
 # 1. RECOVERY SYSTEM
 #############################################
-echo "[1/4] installing recovery system..."
+echo "[1/12] installing recovery system..."
 
 tee /usr/local/bin/unicorehub_recovery.sh > /dev/null << 'EOF'
 #!/bin/bash
@@ -71,13 +71,14 @@ systemctl enable unicorehub_recovery.service
 #############################################
 # 2. BASE SETUP
 #############################################
+echo "[2/12] create system directory..."
 mkdir -p "$GIT_DIR"
 chown -R "$CURRENT_USER":"$CURRENT_USER" "$GIT_DIR"
 
 #############################################
 # 3. PACKAGES
 #############################################
-echo "[3/4] installing packages..."
+echo "[3/12] installing packages..."
 
 apt update
 
@@ -87,9 +88,9 @@ apt install -y \
     avahi-daemon avahi-utils
 
 #############################################
-# GIT CLONE
+# 4. GIT CLONE
 #############################################
-echo "cloning repository..."
+echo "[4/12] cloning repository..."
 
 if [ ! -d "$PROJECT_DIR" ]; then
     sudo -u "$CURRENT_USER" git clone "$GIT_REPO" "$GIT_DIR"
@@ -98,8 +99,9 @@ else
 fi
 
 #############################################
-# POSTGRES
+# 5. POSTGRES
 #############################################
+echo "[5/12] configure postgres..."
 systemctl enable postgresql
 systemctl restart postgresql
 
@@ -117,14 +119,16 @@ sed -i "s/^host\s\+all\s\+all\s\+::1\/128.*/host all all ::1\/128 scram-sha-256/
 systemctl restart postgresql
 
 #############################################
-# PYTHON VENV
+# 6. PYTHON VENV
 #############################################
+echo "[6/12] creating venv..."
 cd /opt/unicorehub
 python3 -m venv venv
 
 #############################################
-# SYSTEMD APP SERVICE
+# 7. SYSTEMD APP SERVICE
 #############################################
+echo "[7/12] creating systemd service..."
 tee /etc/systemd/system/unicorehub.service > /dev/null <<EOF
 [Unit]
 Description=Unicorehub FastAPI Server
@@ -151,8 +155,9 @@ systemctl daemon-reload
 systemctl enable unicorehub
 
 #############################################
-# NGINX
+# 8. NGINX
 #############################################
+echo "[8/12] installing nginx..."
 rm -f /etc/nginx/sites-enabled/default
 
 tee /etc/nginx/sites-available/unicorehub > /dev/null <<EOF
@@ -177,8 +182,9 @@ ln -sf /etc/nginx/sites-available/unicorehub /etc/nginx/sites-enabled/unicorehub
 systemctl restart nginx
 
 #############################################
-# MDNS
+# 9. MDNS
 #############################################
+echo "[9/12] activate mdns..."
 hostnamectl set-hostname unicorehub
 
 tee /etc/avahi/services/unicorehub.service > /dev/null <<EOF
@@ -196,10 +202,9 @@ EOF
 systemctl restart avahi-daemon
 
 #############################################
-# WEEKLY UPDATE SYSTEM
+# 10. WEEKLY UPDATE SYSTEM
 #############################################
-
-echo "installing weekly update system..."
+echo "[10/12] installing weekly update system..."
 
 tee /etc/systemd/system/unicorehub_weekly_update.service > /dev/null <<EOF
 [Unit]
@@ -230,15 +235,16 @@ systemctl enable unicorehub_weekly_update.timer
 systemctl start unicorehub_weekly_update.timer
 
 #############################################
-# FILE PERMISSIONS
+# 11. FILE PERMISSIONS
 #############################################
+echo "[11/12] set file permissions..."
 chmod -R 755 "$PROJECT_DIR/static"
 
 
 #############################################
-# FIREWALL (UFW)
+# 12. FIREWALL (UFW)
 #############################################
-
+echo "[12/12] firewall setup..."
 echo "[FIREWALL] configuring UFW..."
 
 apt install -y ufw
@@ -267,7 +273,9 @@ ufw status
 #############################################
 
 echo "===== INSTALLATION COMPLETE ====="
-echo "http://unicorehub.local"
-
 sleep 2
+echo "after reboot "
+echo "System accessible: http://unicorehub.local"
+
+sleep 5
 reboot
