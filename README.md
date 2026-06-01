@@ -2,7 +2,7 @@
 UnicoreHub is designed for Linux-based systems and has been tested on:
 - Ubuntu Server 22.04 LTS (recommended)
 - Ubuntu Server 24.04 LTS (supported)
-Other Debian-based systems may work but are not officially tested.
+- Other Debian-based systems may work but are not officially tested.
 
 # full setup guide
 
